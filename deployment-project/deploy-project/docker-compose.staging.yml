@@ -1,0 +1,13 @@
+# Staging: same image and settings as production, different port, data and API key.
+services:
+  app:
+    image: ${IMAGE:-expense-tracker:latest}
+    environment:
+      APP_ENV: staging
+      API_KEY: ${API_KEY}
+      LOG_LEVEL: DEBUG
+    ports: ["8001:8000"]
+    volumes: ["staging-data:/data"]
+    restart: unless-stopped
+volumes:
+  staging-data:
