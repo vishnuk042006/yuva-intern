@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block title %}My issues{% endblock %}
+{% block content %}
+<h1>My issues</h1>
+{% if notes %}<div class="card"><h2>Notifications</h2>
+{% for n in notes %}<div>{% if not n.is_read %}<b>•</b> {% endif %}<a href="{{ url_for('issue_detail', issue_id=n.issue_id) }}">{{ n.message }}</a> <span class="muted">{{ n.created_at }}</span></div>{% endfor %}</div>{% endif %}
+<div class="card">
+{% if issues %}<table><tr><th>#</th><th>Title</th><th>Department</th><th>Priority</th><th>Status</th><th>Submitted</th></tr>
+{% for i in issues %}<tr><td>{{ i.id }}</td><td><a href="{{ url_for('issue_detail', issue_id=i.id) }}">{{ i.title }}</a>{% if i.confidential %} 🔒{% endif %}</td>
+<td>{{ i.department }}</td><td><span class="pill {{ i.priority }}">{{ i.priority }}</span></td><td>{{ i.status.replace('_',' ') }}</td><td>{{ i.created_at[:10] }}</td></tr>{% endfor %}</table>
+{% else %}<p>You have not reported any issues yet.</p>{% endif %}
+<p><a class="btn" href="{{ url_for('submit') }}">Report an issue</a></p></div>{% endblock %}

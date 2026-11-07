@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="csrf-token" content="{{ csrf_token }}">
+<title>{% block title %}CampusConnect AI{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head><body>
+<nav>
+  <a class="brand" href="{{ url_for('index') }}">CampusConnect AI</a>
+  {% if g.user %}
+    {% if g.user.role == 'student' %}
+      <a href="{{ url_for('student_home') }}">My issues {% if unread %}<span class="badge">{{ unread }}</span>{% endif %}</a>
+      <a href="{{ url_for('submit') }}">Report an issue</a>
+    {% else %}
+      <a href="{{ url_for('official_home') }}">Dashboard</a>
+    {% endif %}
+    <span class="muted" style="color:#c8cfdd">{{ g.user.name }}</span>
+    <form method="post" action="{{ url_for('logout') }}" style="margin:0">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}"><button>Log out</button></form>
+  {% else %}
+    <a href="{{ url_for('login') }}">Log in</a><a href="{{ url_for('register') }}">Register</a>
+  {% endif %}
+</nav>
+<main>
+  {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="flash {{ category }}">{{ message }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</main>
+</body></html>

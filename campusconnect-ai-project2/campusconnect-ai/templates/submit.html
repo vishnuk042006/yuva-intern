@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% block title %}Report an issue{% endblock %}
+{% block content %}
+<div class="card"><h1>Report an issue</h1>
+<p class="muted">Describe the problem clearly. AI will suggest where it should go, but a real person reviews every issue.</p>
+{% if dups %}<div class="notice"><b>Similar issues already exist.</b> Please check before submitting again:
+<ul>{% for d in dups %}<li>#{{ d.id }} {{ d.title }} ({{ d.status.replace('_',' ') }}, {{ (d.score*100)|round|int }}% similar)</li>{% endfor %}</ul>
+If yours is different, press "Submit anyway".</div>{% endif %}
+<form method="post"><input type="hidden" name="_csrf" value="{{ csrf_token }}">
+{% if dups %}<input type="hidden" name="confirm" value="1">{% endif %}
+<label>Title</label><input name="title" maxlength="120" required value="{{ form.title }}">
+<label>Description</label><textarea id="description" name="description" maxlength="2000" required>{{ form.description }}</textarea>
+<div class="ai-box" id="ai-box"></div>
+<label><input type="checkbox" name="confidential" style="width:auto" {% if form.confidential %}checked{% endif %}> Keep my identity confidential from department officers</label>
+<p><button class="btn">{% if dups %}Submit anyway{% else %}Submit{% endif %}</button></p></form></div>
+<script>
+const box=document.getElementById('ai-box'),desc=document.getElementById('description'),title=document.querySelector('[name=title]');
+let timer;
+function ask(){
+  fetch('{{ url_for("api_suggest") }}',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':document.querySelector('meta[name=csrf-token]').content},
+    body:JSON.stringify({text:title.value+'. '+desc.value})}).then(r=>r.json()).then(d=>{
+    if(!d.ready){box.style.display='none';return}
+    box.style.display='block';
+    let h='<b>AI suggestion (to be confirmed by an official):</b> '+(d.low_confidence?'could not decide the department, so an administrator will route it':'department <b>'+d.department+'</b>')+', priority <b>'+d.priority+'</b>.';
+    if(d.sensitive)h+='<br>This looks like a sensitive matter. It will be marked confidential and reviewed by a person. If anyone is in immediate danger, contact campus security or local emergency services right away.';
+    box.innerHTML=h});
+}
+[desc,title].forEach(e=>e.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(ask,600)}));
+</script>{% endblock %}
